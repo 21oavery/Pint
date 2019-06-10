@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Pint:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Pint_jar</output-path>
+    <root id="archive" name="Pint.jar">
+      <element id="module-output" name="Pint" />
+    </root>
+  </artifact>
+</component>
