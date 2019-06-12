@@ -80,6 +80,18 @@ public class Loader {
 
     private static final ClassVisitor loadVisitor = new ClassVisitor(Opcodes.ASM7) {
         @Override
+        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            AnnotationVisitor superVis = super.visitAnnotation(descriptor, visible);
+            return new AnnotationVisitor() {
+                @Override
+                public void visit(String name, Object value) {
+                    super.visit(name, value);
+                    if (name == )
+                }
+            }
+        }
+
+        @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
             MethodVisitor superVis = super.visitMethod(access, name, descriptor, signature, exceptions);
             System.out.println("method: " + name);
