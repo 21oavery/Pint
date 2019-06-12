@@ -25,6 +25,6 @@ public class Start {
         // Setup running directory
         System.setProperty("user.dir", Files.createTempDirectory("pint").toAbsolutePath().toString());
         // Load tasks
-        Loader.search(new File("/home/owen/Downloads"));
+        Loader.search(new File("P:\\pint.d"));
     }
 }

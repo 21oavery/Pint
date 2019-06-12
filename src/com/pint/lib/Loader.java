@@ -3,22 +3,14 @@ package com.pint.lib;
 import org.objectweb.asm.*;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Enumeration;
-import java.util.Map;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 public class Loader {
     private static URLClassLoader loader = (URLClassLoader) Loader.class.getClassLoader();
@@ -52,34 +44,13 @@ public class Loader {
             try {
                 System.out.println(f);
                 loadJar(f);
-            } catch (IllegalAccessException | InvocationTargetException | IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private static int getMagic(InputStream in, byte[] out) throws IOException {
-        int sig = 0;
-        int r;
-        for (int i = 0; i < 4; i++) {
-            r = in.read();
-            if (r == -1) {
-                in.close();
-                throw new IOException("Unexpected EOF before end of magic");
-            }
-            out[i] = (byte) r;
-            sig <<= 8;
-            sig |= ((byte) r);
-        }
-        return sig;
-    }
-
-    private static InputStream stitch(InputStream in, byte[] magic) {
-        return new SequenceInputStream(new ByteArrayInputStream(magic), in);
-    }
-
-    private static final ClassVisitor loadVisitor = new ClassVisitor(Opcodes.ASM7) {
-        @Override
+    private static final ClassVisitor loadVisitor = new ClassVisitor(Opcodes.ASM7) {@Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
             MethodVisitor superVis = super.visitMethod(access, name, descriptor, signature, exceptions);
             System.out.println("method: " + name);
@@ -93,7 +64,36 @@ public class Loader {
         }
     };
 
-    private static void loadJar(File f) throws InvocationTargetException, IllegalAccessException, IOException {
+    private static ClassVisitor createModuleBuilder() {
+        boolean shouldMake;
+        ClassVisitor c = new ClassVisitor(Opcodes.ASM7) {
+            @Override
+            public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                AnnotationVisitor vis = super.visitAnnotation(descriptor, visible);
+                if (descriptor.equals("Lcom/pint/api/Module")) {
+                    return new AnnotationVisitor(Opcodes.ASM7, vis) {
+                        private String name;
+                        private int maxV;
+                        private int minV;
+                        private int bugV;
+
+                        @Override
+                        public void visit(String name, Object value) {
+                            System.out.println(name + ":" + value.toString());
+                            super.visit(name, value);
+                        }
+
+                        @Override
+                        public void visitEnd() {
+                            super.visitEnd();
+                        }
+                    };
+                } else return vis;
+            }
+        }
+    }
+
+    private static void loadJar(File f) throws IOException {
         ZipFile zipF;
         try {
             zipF = new ZipFile(f);
