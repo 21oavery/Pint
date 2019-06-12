@@ -78,8 +78,20 @@ public class Loader {
         return new SequenceInputStream(new ByteArrayInputStream(magic), in);
     }
 
-    private static final ClassVisitor loadVisitor = new ClassVisitor() {
-    }
+    private static final ClassVisitor loadVisitor = new ClassVisitor(Opcodes.ASM7) {
+        @Override
+        public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+            MethodVisitor superVis = super.visitMethod(access, name, descriptor, signature, exceptions);
+            System.out.println("method: " + name);
+            return new MethodVisitor(Opcodes.ASM7) {
+                @Override
+                public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                    System.out.println(descriptor);
+                    return super.visitAnnotation(descriptor, visible);
+                }
+            };
+        }
+    };
 
     private static void loadJar(File f) throws InvocationTargetException, IllegalAccessException, IOException {
         ZipFile zipF;
@@ -92,6 +104,12 @@ public class Loader {
         Enumeration<? extends ZipEntry> entries = zipF.entries();
         while (entries.hasMoreElements()) {
             zipE = entries.nextElement();
+            String name = zipE.getName();
+            if (name.endsWith(".class")) {
+                System.out.println(name);
+                ClassReader r = new ClassReader(zipF.getInputStream(zipE));
+                r.accept(loadVisitor, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+            }
         }
     }
 }
