@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -50,44 +51,8 @@ public class Loader {
         }
     }
 
-<<<<<<< HEAD
-    private static int getMagic(InputStream in, byte[] out) throws IOException {
-        int sig = 0;
-        int r;
-        for (int i = 0; i < 4; i++) {
-            r = in.read();
-            if (r == -1) {
-                in.close();
-                throw new IOException("Unexpected EOF before end of magic");
-            }
-            out[i] = (byte) r;
-            sig <<= 8;
-            sig |= ((byte) r);
-        }
-        return sig;
-    }
-
-    private static InputStream stitch(InputStream in, byte[] magic) {
-        return new SequenceInputStream(new ByteArrayInputStream(magic), in);
-    }
-
     private static final ClassVisitor loadVisitor = new ClassVisitor(Opcodes.ASM7) {
         @Override
-        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            AnnotationVisitor superVis = super.visitAnnotation(descriptor, visible);
-            return new AnnotationVisitor() {
-                @Override
-                public void visit(String name, Object value) {
-                    super.visit(name, value);
-                    if (name == )
-                }
-            }
-        }
-
-        @Override
-=======
-    private static final ClassVisitor loadVisitor = new ClassVisitor(Opcodes.ASM7) {@Override
->>>>>>> 7dccc2f0c93b95f3d00d8680242b72d818af0404
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
             MethodVisitor superVis = super.visitMethod(access, name, descriptor, signature, exceptions);
             System.out.println("method: " + name);
@@ -113,10 +78,17 @@ public class Loader {
                         private int maxV;
                         private int minV;
                         private int bugV;
+                        private ArrayList<TreeLocation>
 
                         @Override
                         public void visit(String name, Object value) {
                             System.out.println(name + ":" + value.toString());
+                            switch (name) {
+                                case "name":
+                                case "maxV":
+                                case "minV":
+                                case "bugV":
+                            }
                             super.visit(name, value);
                         }
 
