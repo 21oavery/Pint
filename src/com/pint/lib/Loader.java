@@ -9,6 +9,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -66,40 +67,76 @@ public class Loader {
         }
     };
 
-    private static ClassVisitor createModuleBuilder() {
-        boolean shouldMake;
-        ClassVisitor c = new ClassVisitor(Opcodes.ASM7) {
+    private static ClassVisitor createModuleBuilder(ClassVisitor superVisitor, Consumer<LoadedModule> callback) {
+        return new ClassVisitor(Opcodes.ASM7, superVisitor) {
             @Override
             public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
                 AnnotationVisitor vis = super.visitAnnotation(descriptor, visible);
                 if (descriptor.equals("Lcom/pint/api/Module")) {
                     return new AnnotationVisitor(Opcodes.ASM7, vis) {
+                        private boolean isInvalid;
                         private String name;
                         private int maxV;
                         private int minV;
                         private int bugV;
-                        private ArrayList<TreeLocation>
+                        private final ArrayList<String> deps = new ArrayList<>();
+                        private final ArrayList<String> optDeps = new ArrayList<>();
 
                         @Override
                         public void visit(String name, Object value) {
+                            super.visit(name, value);
+                            if (isInvalid) return;
                             System.out.println(name + ":" + value.toString());
                             switch (name) {
                                 case "name":
+                                    if (!(value instanceof String) || ((String) value).matches("[^\\w-.]")) {
+                                        System.err.println("[ERROR] Module name must be a String and contain only alphanumeric characters, periods, and dashes");
+                                        isInvalid = false;
+                                        return;
+                                    }
+                                    name = (String) value;
+                                    break;
                                 case "maxV":
+                                    int v;
+                                    if (!(value instanceof Integer) || ((v = ((Integer) value)) < 0)) {
+                                        System.err.println("[ERROR] Module major version must be positive integer");
+                                        isInvalid = false;
+                                        return;
+                                    }
+                                    maxV = v;
+                                    break;
                                 case "minV":
+                                    if (!(value instanceof Integer) || ((v = ((Integer) value)) < 0)) {
+                                        System.err.println("[ERROR] Module minor version must be positive integer");
+                                        isInvalid = false;
+                                        return;
+                                    }
+                                    minV = v;
+                                    break;
                                 case "bugV":
+                                    if (!(value instanceof Integer) || ((v = ((Integer) value)) < 0)) {
+                                        System.err.println("[ERROR] Module bug version must be positive integer");
+                                        isInvalid = false;
+                                        return;
+                                    }
+                                    bugV = v;
+                                    break;
+                                case "deps":
+
+                                case "optDeps":
                             }
-                            super.visit(name, value);
                         }
 
                         @Override
                         public void visitEnd() {
                             super.visitEnd();
+                            if (isInvalid) return;
+                            callback.accept(new LoadedModule());
                         }
                     };
                 } else return vis;
             }
-        }
+        };
     }
 
     private static void loadJar(File f) throws IOException {

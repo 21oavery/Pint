@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 public class LoadedModule {
     public ArrayList<LoadedTask> tasks;
-    public ArrayList<LoadedModule> subModules;
 
     public String name;
+    public String className;
     public Version version;
 }
