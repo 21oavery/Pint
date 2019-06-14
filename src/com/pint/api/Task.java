@@ -1,5 +1,10 @@
 package com.pint.api;
 
-public @interface Task {
-    String name();
+import com.pint.lib.Dependency;
+import com.pint.lib.RunnableTask;
+
+public interface Task {
+    RunnableTask getRunnable();
+    Dependency[] getDependencies();
+    Dependency[] getOptDependencies();
 }
