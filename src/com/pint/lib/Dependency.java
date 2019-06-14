@@ -2,11 +2,16 @@ package com.pint.lib;
 
 import com.pint.api.Task;
 
+import javax.naming.OperationNotSupportedException;
 import java.util.Arrays;
+import java.util.List;
 
 public class Dependency {
     private String taskName;
     private Object[] args;
+    private Task taskCache;
+    private Dependency[] depCache;
+    private Dependency[] optDepCache;
 
     public Dependency(String taskNameIn, Object... argsIn) {
         Checks.checkTaskName(taskNameIn);
@@ -23,7 +28,22 @@ public class Dependency {
     }
 
     public Task getTask() {
+        if (taskCache != null) return taskCache;
         return TaskRegistry.getTask(this);
+    }
+
+    public Dependency[] getDependencies() throws OperationNotSupportedException {
+        if (depCache != null) return depCache;
+        Task t = getTask();
+        if (t == null) throw new OperationNotSupportedException("Task could not be found");
+        return depCache = t.getDependencies();
+    }
+
+    public Dependency[] getOptDependencies() throws OperationNotSupportedException {
+        if (optDepCache != null) return optDepCache;
+        Task t = getTask();
+        if (t == null) throw new OperationNotSupportedException("Task could not be found");
+        return optDepCache = t.getOptDependencies();
     }
 
     @Override
