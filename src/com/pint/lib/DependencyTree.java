@@ -23,11 +23,11 @@ public class DependencyTree {
             try {
                 deps = dIn.getDependencies();
             } catch (OperationNotSupportedException e) {
-                System.err.println("[ERROR] Dependency " + dIn + " failed: could not be found")
+                System.err.println("[ERROR] Dependency " + dIn + " failed: could not be found");
             }
             for (Dependency d : deps) {
                 if (blockedDeps.contains(d)) {
-                    System.err.println("[ERROR] Circular dependency detected");
+                    System.err.println("[ERROR] Circular dependency detected, failed");
                     throw new OperationNotSupportedException("Circular dependency");
                 }
                 lower.add(usedMap.computeIfAbsent(d, d -> {
